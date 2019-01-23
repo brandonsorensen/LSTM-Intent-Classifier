@@ -15,9 +15,15 @@ def main():
     (X_train, y_train), (vocab, word_to_idx, idx_to_word) = process_data(train, max_len)
     (X_val, y_val), (_,_,_) = process_data(val, max_len)
 
-    model = LSTMClassifier(len(vocab), num_classes)
+    print('Initializing model...')
+    model = LSTMClassifier(len(vocab), num_classes).model
+    model.compile(loss='sparse_categorical_crossentropy',
+                  optimizer='adam', metrics=['accuracy'])
+
+    print(model.summary())
     history = model.fit(X_train, y_train, validation_data=(X_val, y_val),
                         epochs=3, batch_size=64)
+    print('Model trained')
 
 if __name__ == '__main__':
     main()

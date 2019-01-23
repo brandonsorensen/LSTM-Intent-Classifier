@@ -1,4 +1,6 @@
 import pandas as pd
+from collections import Counter
+from keras.preprocessing import sequence
 
 def preprocess(series):
     def delimit(sent):
