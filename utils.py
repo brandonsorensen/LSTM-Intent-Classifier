@@ -5,7 +5,7 @@ from keras.preprocessing import sequence
 
 def preprocess(series):
     """Preprocesses every row in a `Series`"""
-    def delimit(sent: list) -> list:
+    def delimit(sent):
         """Inserts special symbols for start and end into sentence"""
         arr = sent.split()
         if arr:
