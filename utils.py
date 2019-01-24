@@ -2,6 +2,7 @@ import pandas as pd
 from collections import Counter
 from keras.preprocessing import sequence
 
+
 def preprocess(series):
     def delimit(sent):
         arr = sent.split()
@@ -13,8 +14,10 @@ def preprocess(series):
         return arr
     return series.apply(delimit)
 
+
 def process_seq(seq, mapping):
     return [mapping[w] for w in seq]
+
 
 def get_vocab(sents, top_words=None):
     c = Counter()
