@@ -57,3 +57,8 @@ def process_data(data, max_len, top_words=None):
     
     return (X, y), (vocab, word_to_idx, idx_to_word)
 
+def merge(df: pd.DataFrame) -> pd.DataFrame:
+    """Merges the context and the utterance into one column"""
+    return (df['utterance_t-3'] + df['uttereance_t-2'] + df['utterance_t-1'] \
+            + df['utterance_t'])
+
