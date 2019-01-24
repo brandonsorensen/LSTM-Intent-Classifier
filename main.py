@@ -1,5 +1,5 @@
 import os
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import argparse
 from utils import *
 from models.lstm_classifier import LSTMClassifier
@@ -28,13 +28,13 @@ def main():
     (X_val, y_val), (_,_,_) = process_data(val, max_len)
 
     print('Initializing model...')
-    model = LSTMClassifier(len(vocab), num_classes, max_len)
+    model = LSTMClassifier(len(vocab), num_classes, max_len, lstm_layers=500)
     model.compile(loss='sparse_categorical_crossentropy',
                   optimizer='adam', metrics=['accuracy'])
 
     print(model.summary())
     history = model.fit(X_train, y_train, validation_data=(X_val, y_val),
-                        epochs=3, batch_size=64)
+                        epochs=3, batch_size=1)
     print('Model trained')
     plt.plot(history.history['acc'])
 
