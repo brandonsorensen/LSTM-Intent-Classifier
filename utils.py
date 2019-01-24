@@ -45,10 +45,10 @@ def get_vocab(sents: list, top_words: int = None):
         c.update(sent)
         
     if top_words is not None:
+        if top_words > len(c):
+            raise Exception(f'top_words must be less than the number of words: {len(c)}')
         vocab = set([w[0] for w in c.most_common(top_words)])
     else:
-        if top_words > len(vocab):
-            raise Exception(f'top_words must be less than the number of words: {len(vocab)}')
         vocab = set(c.keys())
         
     word_to_idx = {}
@@ -60,7 +60,7 @@ def get_vocab(sents: list, top_words: int = None):
         
     return vocab, word_to_idx, idx_to_word
 
-def load_data(path: str): pd.DataFrame:
+def load_data(path: str) -> pd.DataFrame:
     """Loads data from `path` into a DataFrame."""
     COLUMNS = ['utterance_ID', 'dialog_act', 'utterance_t-3', 
            'utterance_t-2', 'utterance_t-1', 'utterance_t']
@@ -100,6 +100,6 @@ def process_data(data: pd.DataFrame, max_len: int, top_words: int = None):
 
 def merge(df: pd.DataFrame) -> pd.DataFrame:
     """Merges the context and the utterance into one column"""
-    return (df['utterance_t-3'] + df['uttereance_t-2'] + df['utterance_t-1'] \
+    return (df['utterance_t-3'] + df['utterance_t-2'] + df['utterance_t-1'] \
             + df['utterance_t'])
 

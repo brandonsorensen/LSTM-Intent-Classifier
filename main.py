@@ -1,13 +1,24 @@
 import os
-from utils import *
 import matplotlib as plt
+import argparse
+from utils import *
 from models.lstm_classifier import LSTMClassifier
+
+def parse_args() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--with-context', help='Use previous utterances in model',
+                        action='store_true')
+    return parser.parse_args()
 
 def main():
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    args = parse_args()
 
     train = load_data('data/utterances.train')
     val = load_data('data/utterances.valid')
+
+    if args.with_context:
+        train['utterance_t'] = merge(train)
 
     classes = train['dialog_act'].unique()
     num_classes = len(classes)
