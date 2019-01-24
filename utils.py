@@ -46,7 +46,7 @@ def get_vocab(sents, top_words=None):
         
     if top_words is not None:
         if top_words > len(c):
-            raise Exception(f'top_words must be less than the number of words: {len(c)}')
+            raise Exception('top_words must be less than the number of words: {%d}' % len(c))
         vocab = set([w[0] for w in c.most_common(top_words)])
     else:
         vocab = set(c.keys())
