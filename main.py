@@ -4,7 +4,7 @@ import argparse
 from utils import *
 from models.lstm_classifier import LSTMClassifier
 
-def parse_args() -> argparse.ArgumentParser:
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--with-context', help='Use previous utterances in model',
                         action='store_true')

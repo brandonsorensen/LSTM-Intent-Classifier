@@ -3,7 +3,7 @@ from collections import Counter
 from keras.preprocessing import sequence
 
 
-def preprocess(series: pd.Series) -> pd.Series:
+def preprocess(series):
     """Preprocesses every row in a `Series`"""
     def delimit(sent: list) -> list:
         """Inserts special symbols for start and end into sentence"""
@@ -17,12 +17,12 @@ def preprocess(series: pd.Series) -> pd.Series:
     return series.apply(delimit)
 
 
-def process_seq(seq: list, mapping: dict):
+def process_seq(seq, mapping):
     """Gets the idx for every element in a sentence."""
     return [mapping[w] for w in seq]
 
 
-def get_vocab(sents: list, top_words: int = None):
+def get_vocab(sents, top_words=None):
     """
     Gets the entire vocabulary of a list of tokenized sentences,
     then maps both every word to a specific index and every index
@@ -60,7 +60,7 @@ def get_vocab(sents: list, top_words: int = None):
         
     return vocab, word_to_idx, idx_to_word
 
-def load_data(path: str) -> pd.DataFrame:
+def load_data(path):
     """Loads data from `path` into a DataFrame."""
     COLUMNS = ['utterance_ID', 'dialog_act', 'utterance_t-3', 
            'utterance_t-2', 'utterance_t-1', 'utterance_t']
@@ -70,7 +70,7 @@ def load_data(path: str) -> pd.DataFrame:
     df[COLUMNS[2:]] = df[COLUMNS[2:]].apply(preprocess)
     return df
 
-def process_data(data: pd.DataFrame, max_len: int, top_words: int = None):
+def process_data(data, max_len, top_words=None):
     """
     Prepares the data for the model by calling `process_seq` on each sentence
     in the data, then padding the sequence to max_len. If `top_words` is None,
@@ -98,8 +98,8 @@ def process_data(data: pd.DataFrame, max_len: int, top_words: int = None):
     
     return (X, y), (vocab, word_to_idx, idx_to_word)
 
-def merge(df: pd.DataFrame) -> pd.DataFrame:
-    """Merges the context and the utterance into one column"""
+def merge(df):
+    """Merges the context and the utterance into one column."""
     return (df['utterance_t-3'] + df['utterance_t-2'] + df['utterance_t-1'] \
             + df['utterance_t'])
 
