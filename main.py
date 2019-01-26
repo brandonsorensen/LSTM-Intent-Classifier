@@ -1,8 +1,9 @@
 import os
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import argparse
 from utils import *
 from models.lstm_classifier import LSTMClassifier
+from models.gru_classifier import GRUClassifier
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -28,15 +29,14 @@ def main():
     (X_val, y_val), (_,_,_) = process_data(val, max_len)
 
     print('Initializing model...')
-    model = LSTMClassifier(len(vocab), num_classes, max_len, lstm_layers=500)
-    model.compile(loss='sparse_categorical_crossentropy',
-                  optimizer='adam', metrics=['accuracy'])
+    #model = LSTMClassifier(len(vocab), num_classes, max_len, dropout=0.6, lstm_layers=3)
+    model = GRUClassifier(len(vocab), num_classes, max_len)
 
     print(model.summary())
     history = model.fit(X_train, y_train, validation_data=(X_val, y_val),
-                        epochs=3, batch_size=1)
+                        epochs=3, batch_size=64)
     print('Model trained')
-    plt.plot(history.history['acc'])
+    #plt.plot(history.history['acc'])
 
 
 if __name__ == '__main__':

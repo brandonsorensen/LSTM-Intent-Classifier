@@ -7,7 +7,7 @@ class LSTMClassifier(Sequential):
                      dropout=0.2, lstm_layers=100):
         super(LSTMClassifier, self).__init__()
         #self.model = Sequential()
-        self.add(Embedding(vocab_len, embedding_dim, input_length=embedding_dim))
+        self.add(Embedding(vocab_len, 50, input_length=embedding_dim))
         self.add(LSTM(lstm_layers, dropout=dropout, recurrent_dropout=dropout))
         self.add(Dense(num_classes, activation='softmax'))
         self.compile(loss='sparse_categorical_crossentropy',
