@@ -1,15 +1,15 @@
 from keras.models import Sequential
-from keras.layers import Dense, LSTM, Dropout
+from keras.layers import Dense, LSTM, Dropout, GlobalMaxPooling1D
 from keras.layers.embeddings import Embedding
 
 class LSTMClassifier(Sequential):
-    def __init__(self, vocab_len, num_classes, embedding_dim,
-                     dropout=0.2, lstm_layers=100):
+    def __init__(self, num_classes, max_utter_len, weights,
+                     dropout=0.2, lstm_layers=128):
         super(LSTMClassifier, self).__init__()
-        #self.model = Sequential()
-        self.add(Embedding(vocab_len, 50, input_length=embedding_dim))
-        self.add(LSTM(lstm_layers, dropout=dropout, recurrent_dropout=dropout))
+        self.add(Embedding(weights.shape[0], weights.shape[1], input_length=max_utter_len,
+                           weights=[weights], mask_zero=False))
+        self.add(LSTM(lstm_layers, dropout=dropout, return_sequences=True,
+                 kernel_initializer='random_uniform', recurrent_initializer='glorot_uniform'))
+        self.add(GlobalMaxPooling1D())
         self.add(Dense(num_classes, activation='softmax'))
-        self.compile(loss='sparse_categorical_crossentropy',
-                      optimizer='adam', metrics=['accuracy'])
 

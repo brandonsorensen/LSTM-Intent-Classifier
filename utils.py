@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from collections import Counter
 from keras.preprocessing import sequence
 
@@ -102,4 +103,62 @@ def merge(df):
     """Merges the context and the utterance into one column."""
     return (df['utterance_t-3'] + df['utterance_t-2'] + df['utterance_t-1'] \
             + df['utterance_t'])
+
+
+# THE FOLLOWING TWO FUNCTIONS ARE TAKEN FROM A
+# LECUTRE ON USING KERAS AT STUTTGART UNIVERSITY
+def get_W(word_vecs, k=300):
+    """
+    Get word matrix. W[i] is the vector for word indexed by i
+    """
+    vocab_size = len(word_vecs)
+    word_idx_map = dict()
+    W = np.zeros(shape=(vocab_size + 1, k), dtype='float32')
+    W[0] = np.zeros(k, dtype='float32')
+    i = 1
+    for word in word_vecs:
+        W[i] = word_vecs[word]
+        word_idx_map[word] = i
+        i += 1
+    return W, word_idx_map
+
+
+def load_bin_vec(fname, vocab):
+    """
+    Loads 300x1 word vecs from Google (Mikolov) word2vec
+    """
+    word_vecs = {}
+    with open(fname, "rb") as f:
+        header = f.readline()
+        # ~ print header
+        vocab_size, layer1_size = map(int, header.split())
+        binary_len = np.dtype('float32').itemsize * layer1_size
+        # print(vocab_size)
+        for line in range(vocab_size):
+            # print(line)
+            word = []
+            while True:
+                ch = f.read(1)
+                if ch == ' ':
+                    word = ''.join(word)
+                    break
+                if ch != '\n':
+                    word.append(ch)
+            # print(word)
+            if word in vocab:
+                # print(word)
+                word_vecs[word] = np.frombuffer(f.read(binary_len), dtype='float32')
+            else:
+                f.read(binary_len)
+
+    return word_vecs
+
+def add_unknown_words(word_vecs, vocab, min_df=1, k=300):
+    """
+    For words that occur in at least min_df documents, create a separate word vector.    
+    0.25 is chosen so the unknown vectors have (approximately) same variance as pre-trained ones
+    """
+    for word in vocab:
+        if word not in word_vecs and vocab[word] >= min_df:
+            word_vecs[word] = np.random.uniform(-0.25, 0.25, k)
 
