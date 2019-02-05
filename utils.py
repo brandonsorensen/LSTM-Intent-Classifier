@@ -1,7 +1,34 @@
 import pandas as pd
 import numpy as np
+import argparse
 from collections import Counter
 from keras.preprocessing import sequence
+from keras.utils.np_utils import to_categorical
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--with-context', help='Use previous utterances in model',
+                        action='store_true')
+    return parser.parse_args()
+
+def load_weights(word_to_idx, source='glove'):
+    emb_dir = '/projekte/slu/share/'
+    if source == 'google':
+        embds_path = emb_dir + 'GoogleNews-vectors-negative300.bin'
+        weights = load_bin_vec(embds_path, word_to_idx)
+    else:
+        weights = {}
+        embds_path = emb_dir + 'emb/glove.twitter.27B.50d.txt'
+        with open(embds_path, 'r', encoding='utf-8') as f:
+            for line in f.readlines():
+                line = line.split()
+                weights[line[0]] = np.array(line[1:], dtype='float32')
+        del weights['0.45973'] # Corrects an error in the file
+
+    num_dims = weights[random.choice(list(weights.keys()))].shape[0]
+    add_unknown_words(weights, word_to_idx, k=num_dims, min_df=0)
+    return get_W(weights, k=num_dims)
 
 
 def preprocess(series):
@@ -61,17 +88,22 @@ def get_vocab(sents, top_words=None):
         
     return vocab, word_to_idx, idx_to_word
 
-def load_data(path):
+def load_data(path, train=True):
     """Loads data from `path` into a DataFrame."""
     COLUMNS = ['utterance_ID', 'dialog_act', 'utterance_t-3', 
            'utterance_t-2', 'utterance_t-1', 'utterance_t']
+
+    if not train:
+        COLUMNS.remove('dialog_act')
     
-    df = pd.read_csv(path, sep='\t|;', engine='python', names=COLUMNS,
-                     dtype=str).set_index('utterance_ID')
+    df = (pd.read_csv(path, sep='\t|;', engine='python', names=COLUMNS)
+            .set_index('utterance_ID')
+            .astype(str))
     df[COLUMNS[2:]] = df[COLUMNS[2:]].apply(preprocess)
     return df
 
-def process_data(data, max_len, top_words=None):
+
+def process_data(data, max_len, top_words=None, custom_vocab=None):
     """
     Prepares the data for the model by calling `process_seq` on each sentence
     in the data, then padding the sequence to max_len. If `top_words` is None,
@@ -90,14 +122,18 @@ def process_data(data, max_len, top_words=None):
     """
     # We have to calculate this every time even though we
     # only need it for the training data
-    vocab, word_to_idx, idx_to_word = get_vocab(data['utterance_t'], top_words)
+    if custom_vocab is None:
+        vocab, word_to_idx, idx_to_word = get_vocab(data['utterance_t'], top_words)
+
     label_to_idx = {label:idx for idx, label in enumerate(data['dialog_act'].unique())}
 
     X = sequence.pad_sequences(data['utterance_t'].apply(process_seq, args=[word_to_idx]),
                                maxlen=max_len)
     y = data['dialog_act'].map(label_to_idx).values
+    y = to_categorical(y, len(data['dialog_act'].unique()))
     
     return (X, y), (vocab, word_to_idx, idx_to_word)
+
 
 def merge(df):
     """Merges the context and the utterance into one column."""
@@ -130,7 +166,6 @@ def load_bin_vec(fname, vocab):
     word_vecs = {}
     with open(fname, "rb") as f:
         header = f.readline()
-        # ~ print header
         vocab_size, layer1_size = map(int, header.split())
         binary_len = np.dtype('float32').itemsize * layer1_size
         # print(vocab_size)
