@@ -1,20 +1,29 @@
-from keras.models import Sequential
+from models.base_classifier import BaseClassifier
+from keras.models import Sequential, load_model
 from keras.layers import Dense, GRU, Bidirectional, Dropout, BatchNormalization
 from keras.layers.embeddings import Embedding
 
-class GRUClassifier(Sequential):
-    def __init__(self, vocab_len, num_classes, embedding_dim,
-                 custom_weights, dropout=0.5):
-        super(GRUClassifier, self).__init__()
-        self.add(Embedding(custom_weights.shape[0], custom_weights.shape[1], input_length=embedding_dim,
-                           weights=[custom_weights]))
-        self.add(Bidirectional(GRU(64)))
-        self.add(Dense(64, activation = 'relu'))
-        self.add(Dropout(dropout))
-        self.add(Dense(64, activation = 'relu'))
-        self.add(Dropout(dropout))
-        self.add(BatchNormalization())
-        self.add(Dense(num_classes, activation = 'softmax'))
-        self.compile(loss='sparse_categorical_crossentropy',
-                     optimizer='adam', metrics=['accuracy'])
+class GRUClassifier(BaseClassifier):
+    def __init__(self, num_classes, max_len,
+                 weights, dropout=0.2, from_file=None):
+        if from_file is None:
+            self._init_model(num_classes, max_len, weights, dropout)
+        else:
+            self.model = load_model(from_file)
+        self._set_methods()
 
+    def _init_model(self, num_classes, max_len, weights, dropout):
+        self.model = Sequential()
+        self.model.add(Embedding(weights.shape[0], weights.shape[1], input_length=max_len,
+                           weights=[weights]))
+        self.model.add(Bidirectional(GRU(64)))
+        self.model.add(Dense(64, activation = 'relu'))
+        self.model.add(Dropout(dropout))
+        self.model.add(Dense(64, activation = 'relu'))
+        self.model.add(Dropout(dropout))
+        self.model.add(BatchNormalization())
+        self.model.add(Dense(num_classes, activation = 'softmax'))
+
+
+def load_gru(path):
+    return GRUClassifier(None, None, None, None, None, from_file=path)

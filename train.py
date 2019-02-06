@@ -13,7 +13,7 @@ def add_test_vocab(test_data, total_vocab, word_to_idx, idx_to_word):
         idx2word[idx] = word
         vocab.add(word)
 
-def train():
+def train(epochs=3, batch_size=256, model=None):
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     args = parse_args()
 
@@ -39,13 +39,14 @@ def train():
     print('Embeddings imported.')
 
     print('Initializing model...')
-    model = LSTMClassifier(num_classes, max_len, W)
-    model.compile(loss='categorical_crossentropy',
-                  optimizer='adam', metrics=['accuracy'])
+    if model is None:
+        model = LSTMClassifier(num_classes, max_len, W)
+        model.compile(loss='categorical_crossentropy',
+                      optimizer='adam', metrics=['accuracy'])
 
     print(model.summary())
     history = model.fit(X_train, y_train, validation_split=val_split,
-                        epochs=3, batch_size=256)
+                        epochs=epochs, batch_size=batch_size)
     print('Model trained')
     model_name = 'lstm_model.h5'
     print('Saving model to ./' + model_name)
