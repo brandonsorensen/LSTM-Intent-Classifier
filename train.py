@@ -1,20 +1,22 @@
 import os
 import argparse
+import keras
 from utils import *
 from models.lstm_classifier import LSTMClassifier
 from models.gru_classifier import GRUClassifier
+from models.base_classifier import BaseClassifier
 
 def add_test_vocab(test_data, total_vocab, word_to_idx, idx_to_word):
     test_vocab = [word for row in test_data['utterance_t']
             for word in row if word not in total_vocab]
     for word in test_vocab:
         idx = len(word_to_idx)
-        word2idx[word] = idx
-        idx2word[idx] = word
-        vocab.add(word)
+        word_to_idx[word] = idx
+        idx_to_word[idx] = word
+        total_vocab.add(word)
 
-def train(epochs=3, batch_size=256, model=None):
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+def train(epochs=3, batch_size=256, model='lstm', model_name='lstm_classifier'):
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
     args = parse_args()
 
     train = load_data('data/utterances.train')
@@ -35,20 +37,28 @@ def train(epochs=3, batch_size=256, model=None):
         vocab, word_to_idx, idx_to_word)
 
     print('Importing embeddings...')
-    load_weights(word_to_idx, source='glove')
+    W, word_idx = load_weights(word_to_idx, source='glove')
     print('Embeddings imported.')
 
     print('Initializing model...')
-    if model is None:
+    if model == 'lstm':
         model = LSTMClassifier(num_classes, max_len, W)
-        model.compile(loss='categorical_crossentropy',
-                      optimizer='adam', metrics=['accuracy'])
+    elif model == 'gru':
+        model = GRUClassifier(num_classes, max_len, W)
+    elif (issubclass(type(model), BaseClassifier) or
+            issubclass(model, keras.models.Sequential)):
+        pass
+    else:
+        raise Exception('No model provided or properly specified.')
+
+    model.compile(loss='categorical_crossentropy',
+                  optimizer='adam', metrics=['accuracy'])
 
     print(model.summary())
     history = model.fit(X_train, y_train, validation_split=val_split,
                         epochs=epochs, batch_size=batch_size)
     print('Model trained')
-    model_name = 'lstm_model.h5'
+    model_name += '.h5'
     print('Saving model to ./' + model_name)
     model.save(model_name)
 

@@ -8,8 +8,8 @@ class LSTMClassifier(BaseClassifier):
     def __init__(self, num_classes, max_utter_len, weights,
                      dropout=0.2, lstm_layers=128, from_file=None):
         if from_file is None:
-            self.model = _init_model(self, num_classes, max_utter_len,
-                    weights, dropout=0.2, lstm_layers=128)
+            self._init_model(num_classes, max_utter_len,
+                    weights, dropout=dropout, lstm_layers=lstm_layers)
         else:
             self.model = load_model(from_file)
         self._set_methods()

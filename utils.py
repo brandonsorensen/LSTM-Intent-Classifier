@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import argparse
+import random
 from collections import Counter
 from keras.preprocessing import sequence
 from keras.utils.np_utils import to_categorical
@@ -23,8 +24,9 @@ def load_weights(word_to_idx, source='glove'):
         with open(embds_path, 'r', encoding='utf-8') as f:
             for line in f.readlines():
                 line = line.split()
-                weights[line[0]] = np.array(line[1:], dtype='float32')
-        del weights['0.45973'] # Corrects an error in the file
+                word = line[0]
+                if word in word_to_idx:
+                    weights[word] = np.array(line[1:], dtype='float32')
 
     num_dims = weights[random.choice(list(weights.keys()))].shape[0]
     add_unknown_words(weights, word_to_idx, k=num_dims, min_df=0)
